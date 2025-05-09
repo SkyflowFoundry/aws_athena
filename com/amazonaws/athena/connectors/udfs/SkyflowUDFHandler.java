@@ -56,10 +56,6 @@ public class SkyflowUDFHandler
             String vaultURL = System.getenv("VAULT_URL");
             String secretName = System.getenv("SECRET");
             String secretString = cachableSecretsManager.getSecret(secretName);
-            String redaction = "DEFAULT";
-            if (redactionParam.length() > 0) {
-                redaction = redactionParam;
-            }
             String endPointURL = vaultURL + "/v1/vaults/" + vaultID + "/detokenize";
             JSONParser parser = new JSONParser();
             JSONObject secrets = (JSONObject) parser.parse(secretString);
@@ -68,7 +64,9 @@ public class SkyflowUDFHandler
             JSONArray detokenizationParameters = new JSONArray();
             JSONObject parameterObject = new JSONObject();
             parameterObject.put("token", input);
-            parameterObject.put("redaction", redaction);
+            if (redactionParam != null && redactionParam.length() > 0) {
+                parameterObject.put("redaction", redactionParam);
+            }
             detokenizationParameters.add(parameterObject);
             bodyJson.put("detokenizationParameters", detokenizationParameters);
             Map<String, String> headers = new HashMap<>();
@@ -100,14 +98,13 @@ public class SkyflowUDFHandler
             String vaultURL = System.getenv("VAULT_URL");
             String secretName = System.getenv("SECRET");
             String secretString = cachableSecretsManager.getSecret(secretName);
-            String redaction = "DEFAULT";
-            if (redactionParam.length() > 0) {
-                redaction = redactionParam;
-            }
             JSONParser parser = new JSONParser();
             JSONObject secrets = (JSONObject) parser.parse(secretString);
             String apiKey = (String) secrets.get(role);
-            String url = vaultURL + "/v1/vaults/" + vaultID + "/" + tableName + "?skyflow_ids=" + skyflowId + "&redaction=" + redaction;
+            String url = vaultURL + "/v1/vaults/" + vaultID + "/" + tableName + "?skyflow_ids=" + skyflowId;
+            if (redactionParam != null && redactionParam.length() > 0) {
+                url += "&redaction=" + redactionParam;
+            }
             Map<String, String> headers = new HashMap<>();
             headers.put("Authorization", "Bearer " + apiKey);
             long startTime = System.currentTimeMillis();
